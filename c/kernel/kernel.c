@@ -12,6 +12,8 @@
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
 
+void terminal_writestring(const char* data);
+
 /* Hardware text mode color constants. */
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
@@ -71,7 +73,7 @@ void terminal_initialize(void)
 {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_BLUE, VGA_COLOR_BLACK);
+	terminal_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -145,18 +147,20 @@ void terminal_scroll(){
 			}
 		}
 	}
-
 }
 
 void terminal_putchar(char c)
 {
-
+	
 	/* Check if the character is a newline character (\n) */
 
 	if (c == '\n') {
 		/* If it is, we will just reset the column and increase the terminal row */
-		++terminal_row;
 		terminal_column = 0;
+		if(++terminal_row == VGA_HEIGHT){
+			terminal_scroll();
+			terminal_row = VGA_HEIGHT - 1;
+		}
 	}
 	/* If not, we continue like always */
 	else {
@@ -164,7 +168,8 @@ void terminal_putchar(char c)
 		if (++terminal_column == VGA_WIDTH) {
 			terminal_column = 0;
 			if (++terminal_row == VGA_HEIGHT)
-				terminal_row = 0;
+				terminal_scroll();
+				terminal_row = VGA_HEIGHT - 1;
 		}
 	}
 
@@ -186,5 +191,5 @@ void kernel_main(void)
 	/* Initialize terminal */
 	terminal_initialize();
 
-	terminal_writestring("Hello, Kernel World!\nIt's a nice day.");
+	terminal_writestring("Hello, Kernel World!\nIt's a nice day.\nI hope you are doing well\na\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz");
 }
