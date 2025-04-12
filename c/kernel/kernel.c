@@ -71,7 +71,7 @@ void terminal_initialize(void)
 {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+	terminal_color = vga_entry_color(VGA_COLOR_BLUE, VGA_COLOR_BLACK);
 
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -90,6 +90,62 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 {
 	const size_t index = y * VGA_WIDTH + x;
 	terminal_buffer[index] = vga_entry(c, color);
+}
+
+/* Terminal Scroll Function */
+
+/* Pseudocode:
+
+	Our terminal buffer works like a giant table.
+	[' ',' ',' ',' ',]
+	To find the exact location, we multiply the VGA width by the row the terminal is at
+	then we add the offset (the column the character is on).
+	so for example, we will put 'a' in this table (seperated into multiple lines for
+	extra clarity:
+	['','','','','',
+	'','','','a','']
+	to calculate the index, we would need the row of the terminal (2) (and subtract
+	one from the number), and the column, (4).
+
+	All together, if our VGA_WIDTH is 5, the calculation would be:
+	1 * 5 + 4 = 9
+
+	Pseudocode:
+
+	1. Gather the top-line from the buffer.
+	2. Clear the top-line.
+	3. Gather the 2nd line text from the buffer.
+	4. Copy the text onto the top-line.
+	5. Clear the 2nd line.
+	6. Continue.
+*/
+
+static inline uint16_t terminal_returnchar(size_t x, size_t y){
+
+	return terminal_buffer[y * VGA_WIDTH + x];
+
+}
+
+void terminal_scroll(){
+
+	for(int y = 0; y < VGA_HEIGHT; y++){
+		for(int x = 0; x < VGA_WIDTH; x++){
+			size_t index = y * VGA_WIDTH + x;
+			/* check if entry is row 0 (top row) */
+			if(y == 0){
+				/* clear the row */
+				terminal_buffer[index] = vga_entry(' ', terminal_color);
+			} else {
+				/* gather all the characters from the line */
+				char char_at_index = terminal_returnchar(x, y);
+				/* move the text into the top line */
+				terminal_buffer[index - 80] = vga_entry(char_at_index, terminal_color);
+				/* clear the row */
+				terminal_buffer[index] = vga_entry(' ', terminal_color);
+			}
+		}
+	}
+
 }
 
 void terminal_putchar(char c)

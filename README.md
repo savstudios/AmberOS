@@ -5,6 +5,7 @@ AmberOS is an operating system made solo by me!
 So far, it has:
 
 - Newline character function ('\n');
+- Terminal scrolling;
 
 ## How to compile the binary and .iso files? (linux)
 
